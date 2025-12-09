@@ -1,6 +1,5 @@
 package com.CoopCredit.CoopCredit.infrastructure.entity;
 
-
 import com.CoopCredit.CoopCredit.domain.model.ApplicationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -24,6 +23,15 @@ public class CreditApplicationEntity {
     @Column(name = "requested_amount", nullable = false)
     private BigDecimal requestedAmount;
 
+    @Column(name = "requested_terms_in_months", nullable = false) // Añadido
+    private Integer requestedTermsInMonths;
+
+    @Column(name = "calculated_monthly_installment") // Añadido
+    private BigDecimal calculatedMonthlyInstallment;
+
+    @Column(name = "application_date", nullable = false) // Añadido
+    private LocalDateTime applicationDate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ApplicationStatus status;
@@ -36,6 +44,4 @@ public class CreditApplicationEntity {
     // Relación @OneToOne: Una solicitud tiene una (y solo una) Evaluación de Riesgo
     @OneToOne(mappedBy = "application", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private RiskEvaluationEntity riskEvaluation;
-
-
 }

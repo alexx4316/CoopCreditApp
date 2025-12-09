@@ -24,14 +24,30 @@ public class AffiliateEntity {
     @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    // ... otros campos como lastName, email, phone ...
+    @Column(name = "last_name", nullable = false) // Añadido
+    private String lastName;
+
+    @Column(name = "email", unique = true, nullable = false) // Añadido
+    private String email;
+
+    @Column(name = "phone") // Añadido
+    private String phone;
 
     @Column(name = "monthly_salary", nullable = false)
     private BigDecimal monthlySalary;
 
+    @Column(name = "date_of_birth") // Añadido
+    private LocalDate dateOfBirth;
+
+    @Column(name = "join_date", nullable = false) // Añadido
+    private LocalDate joinDate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AffiliateStatus status;
+
+    @Column(name = "user_id", unique = true) // Añadido
+    private String userId; // Asumiendo que userId es un String en la entidad, como en el modelo de dominio
 
     // Relación @OneToMany: Un afiliado puede tener muchas solicitudes
     @OneToMany(mappedBy = "affiliate", fetch = FetchType.LAZY)
