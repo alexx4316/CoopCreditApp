@@ -1,0 +1,14 @@
+server:
+  # Puerto para el Mock: 8081
+  port: 8081
+
+spring:
+  application:
+    name: risk-central-mock-service
+
+# -----------------------------------------------------------------------------
+# LOGGING
+# -----------------------------------------------------------------------------
+logging:
+  level:
+    root: INFO

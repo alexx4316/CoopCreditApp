@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------
+  # 1. BASE DE DATOS: PostgreSQL
+  # ----------------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_coopcredit
+    restart: always
+    environment:
+      # Variables usadas por el contenedor de Postgres
+      POSTGRES_DB: coopcredit_db
+      POSTGRES_USER: coopcredit_user
+      POSTGRES_PASSWORD: coopcredit_pass
+    ports:
+      # Puerto local:Puerto contenedor (para acceso externo/herramientas)
+      - "5432:5432"
+    volumes:
+      # Persistencia de los datos para no perderlos al reiniciar
+      - coopcredit-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coopcredit_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------------
+  # 2. SERVICIO PRINCIPAL: credit-application-service
+  # ----------------------------------------------------------------------
+  credit-application-service:
+    # Construye la imagen a partir del Dockerfile que está en el directorio '../credit-application-service'
+    build:
+      context: ../credit-application-service
+      dockerfile: Dockerfile
+    container_name: credit_app_service
+    ports:
+      # Mapea el puerto de la aplicación al puerto del host
+      - "8080:8080"
+    environment:
+      # Sobreescribe la configuración de aplicación.yml para usar el nombre del servicio de Docker
+      # HOST: 'db' es el nombre del servicio de la base de datos en Docker Compose
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/coopcredit_db
+      # Conexión al Mock: 'risk-central-mock-service' es el nombre del servicio en Docker Compose
+      RISK_CENTRAL_SERVICE_URL: http://risk-central-mock-service:8081/api/v1
+    depends_on:
+      # Asegura que la BD esté lista antes de que Flyway intente conectarse
+      db:
+        condition: service_healthy
+      # Asegura que el Mock esté listo para que la llamada REST funcione
+      risk-central-mock-service:
+        condition: service_started
+
+  # ----------------------------------------------------------------------
+  # 3. SERVICIO EXTERNO MOCK: risk-central-mock-service
+  # ----------------------------------------------------------------------
+  risk-central-mock-service:
+    build:
+      context: ../risk-central-mock-service
+      dockerfile: Dockerfile
+    container_name: risk_central_mock
+    # Exponemos el puerto para que el servicio principal pueda conectarse
+    expose:
+      - "8081"
+    environment:
+      # Se asegura que el mock corra en el puerto correcto dentro de su contenedor
+      SERVER_PORT: 8081
+
+# ----------------------------------------------------------------------
+# 4. VOLÚMENES
+# ----------------------------------------------------------------------
+volumes:
+  coopcredit-data:
